@@ -5,11 +5,13 @@ import (
 	"github.com/rivo/tview"
 )
 
+// Widget
 type Widget struct {
 	View   *tview.TextView
 	Client *conn.Client
 }
 
+// NewWidget create widget
 func NewWidget() Widget {
 	view := tview.NewTextView()
 	view.SetBackgroundColor()
