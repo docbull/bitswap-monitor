@@ -5,18 +5,12 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"os"
-	"time"
 
 	"github.com/Sab94/ipfs-monitor/widget"
+	"github.com/docbull/bitswap-monitor/conn"
 )
 
 type BitswapStatBlock widget.Widget
-
-type HttpClient struct {
-	Client *http.Client
-	Base   string
-}
 
 type BitswapStat struct {
 	BlocksReceived   uint64        `json:"BlocksReceived"`
@@ -31,33 +25,17 @@ type BitswapStat struct {
 	Wantlist         []interface{} `json:"Wantlist"`
 }
 
-func NewHTTPClient() *HttpClient {
-	base := "http://localhost:5001"
-	if len(os.Args) > 1 {
-		base = os.Args[1]
-	}
-	return &HttpClient{
-		Client: &http.Client{
-			Transport:     nil,
-			CheckRedirect: nil,
-			Jar:           nil,
-			Timeout:       time.Second * 10,
-		},
-		Base: base + "/api/v0/",
-	}
-}
-
 func main() {
 	fmt.Println("Bitswap Monitor ...")
 
-	client := NewHTTPClient()
+	client := conn.NewHTTPClient()
 	// fmt.Println("client:", client)
 
 	// text := ""
 	var data = []byte{}
 	var bitswapStat *BitswapStat
 
-	req, err := http.NewRequest("POST", client.Base+"bitswap/stat", nil)
+	req, err := http.NewRequest("POST", client.URL+"bitswap/stat", nil)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -83,8 +61,4 @@ func main() {
 	// fmt.Println("Peers:", bitswapStat.Peers)
 	fmt.Println("Provide Buffer Length:", bitswapStat.ProvideBufLen)
 	fmt.Println("Wantlist:", bitswapStat.Wantlist)
-
-	// text += fmt.Sprintf("%12s: [green]%-7d[white]%12s: [green]%-7d[white]%12s: [green]%-7d\n",
-	// 	"Blocks Got", bitswapStat.BlocksReceived, "Blocks Sent",
-	// 	bitswapStat.BlocksSent, "Dup Blocks", bitswapStat.DupBlksReceived)
 }
