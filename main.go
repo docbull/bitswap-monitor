@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"time"
 
 	"github.com/Sab94/ipfs-monitor/widget"
 	"github.com/docbull/bitswap-monitor/conn"
@@ -23,6 +24,22 @@ type BitswapStat struct {
 	Peers            []interface{} `json:"Peers"`
 	ProvideBufLen    int           `json:"ProvideBufLen"`
 	Wantlist         []interface{} `json:"Wantlist"`
+}
+
+// RefreshMonitor re-rendering bitswap logs every 10ms.
+func RefreshMonitor(bitswapStat *BitswapStat) {
+	fmt.Println("Blocks Got:", bitswapStat.BlocksReceived)
+	fmt.Println("Blocks Sent:", bitswapStat.BlocksSent)
+	fmt.Println("Duplicated Block Received:", bitswapStat.DupBlksReceived)
+
+	fmt.Println("Data Received:", bitswapStat.DataReceived)
+	fmt.Println("Data Sent:", bitswapStat.DataSent)
+	fmt.Println("Duplicated Data Received:", bitswapStat.DupDataReceived)
+
+	fmt.Println("Messages Received:", bitswapStat.MessagesReceived)
+	// fmt.Println("Peers:", bitswapStat.Peers)
+	fmt.Println("Provide Buffer Length:", bitswapStat.ProvideBufLen)
+	fmt.Println("Wantlist:", bitswapStat.Wantlist)
 }
 
 func main() {
@@ -49,16 +66,8 @@ func main() {
 		fmt.Println(err)
 	}
 
-	fmt.Println("Blocks Got:", bitswapStat.BlocksReceived)
-	fmt.Println("Blocks Sent:", bitswapStat.BlocksSent)
-	fmt.Println("Duplicated Block Received:", bitswapStat.DupBlksReceived)
-
-	fmt.Println("Data Received:", bitswapStat.DataReceived)
-	fmt.Println("Data Sent:", bitswapStat.DataSent)
-	fmt.Println("Duplicated Data Received:", bitswapStat.DupDataReceived)
-
-	fmt.Println("Messages Received:", bitswapStat.MessagesReceived)
-	// fmt.Println("Peers:", bitswapStat.Peers)
-	fmt.Println("Provide Buffer Length:", bitswapStat.ProvideBufLen)
-	fmt.Println("Wantlist:", bitswapStat.Wantlist)
+	for {
+		RefreshMonitor(bitswapStat)
+		time.Sleep(time.Millisecond * 2000)
+	}
 }
