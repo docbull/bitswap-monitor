@@ -1,12 +1,14 @@
 package main
 
 import (
-	"context"
+	"encoding/json"
 	"fmt"
-	"os"
+	"io/ioutil"
+	"net/http"
+	"time"
 
 	"github.com/Sab94/ipfs-monitor/widget"
-	"github.com/docbull/bitswap-monitor/bootstrap"
+	"github.com/docbull/bitswap-monitor/conn"
 )
 
 type BitswapStatBlock widget.Widget
@@ -25,7 +27,23 @@ type BitswapStat struct {
 }
 
 // RefreshMonitor re-rendering bitswap logs every 10ms.
-func RefreshMonitor(bitswapStat *BitswapStat) {
+func RefreshMonitor(client *conn.HttpClient, bitswapStat *BitswapStat) {
+	var data = []byte{}
+
+	req, err := http.NewRequest("POST", client.URL+"bitswap/stat", nil)
+	if err != nil {
+		fmt.Println(err)
+	}
+	resp, err := client.Client.Do(req)
+	if err != nil {
+		fmt.Println(err)
+	}
+	data, _ = ioutil.ReadAll(resp.Body)
+	err = json.Unmarshal(data, &bitswapStat)
+	if err != nil {
+		fmt.Println(err)
+	}
+
 	fmt.Println("Blocks Got:", bitswapStat.BlocksReceived)
 	fmt.Println("Blocks Sent:", bitswapStat.BlocksSent)
 	fmt.Println("Duplicated Block Received:", bitswapStat.DupBlksReceived)
@@ -38,46 +56,32 @@ func RefreshMonitor(bitswapStat *BitswapStat) {
 	// fmt.Println("Peers:", bitswapStat.Peers)
 	fmt.Println("Provide Buffer Length:", bitswapStat.ProvideBufLen)
 	fmt.Println("Wantlist:", bitswapStat.Wantlist)
+	fmt.Println("----------------------------------------------")
 }
 
 func main() {
-	fmt.Println("Bitswap Monitor ...")
+	// fmt.Println("Bitswap Monitor ...")
 
-	monitor, err := bootstrap.Bootstrap(context.Background())
-	if err != nil {
-		fmt.Println("\n %v\n", err)
-		os.Exit(1)
+	// monitor, err := bootstrap.Bootstrap(context.Background())
+	// if err != nil {
+	// 	fmt.Println("\n %v\n", err)
+	// 	os.Exit(1)
+	// }
+
+	// // Start tview app
+	// if err := monitor.App.Run(); err != nil {
+	// 	fmt.Printf("\n %v\n", err)
+	// 	os.Exit(1)
+	// }
+
+	client := conn.NewHTTPClient()
+	// fmt.Println("client:", client)
+
+	// text := ""
+	var bitswapStat *BitswapStat
+
+	for {
+		RefreshMonitor(client, bitswapStat)
+		time.Sleep(time.Millisecond * 1000)
 	}
-
-	// Start tview app
-	if err := monitor.App.Run(); err != nil {
-		fmt.Printf("\n %v\n", err)
-		os.Exit(1)
-	}
-
-	// client := conn.NewHTTPClient()
-	// // fmt.Println("client:", client)
-
-	// // text := ""
-	// var data = []byte{}
-	// var bitswapStat *BitswapStat
-
-	// req, err := http.NewRequest("POST", client.URL+"bitswap/stat", nil)
-	// if err != nil {
-	// 	fmt.Println(err)
-	// }
-	// resp, err := client.Client.Do(req)
-	// if err != nil {
-	// 	fmt.Println(err)
-	// }
-	// data, _ = ioutil.ReadAll(resp.Body)
-	// err = json.Unmarshal(data, &bitswapStat)
-	// if err != nil {
-	// 	fmt.Println(err)
-	// }
-
-	// for {
-	// 	RefreshMonitor(bitswapStat)
-	// 	time.Sleep(time.Millisecond * 2000)
-	// }
 }
