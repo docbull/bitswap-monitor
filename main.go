@@ -20,8 +20,6 @@ type BitswapStatBlock widget.Widget
 // RefreshMonitor re-rendering bitswap logs every 10ms.
 func RefreshMonitor(client *conn.HttpClient, bitswapStat *BitswapStat, textView *tview.TextView) {
 	text := ""
-	// fmt.Fprintf(textView, "%s", "ABSc")
-
 	var data = []byte{}
 
 	req, err := http.NewRequest("POST", client.URL+"bitswap/stat", nil)
@@ -40,8 +38,7 @@ func RefreshMonitor(client *conn.HttpClient, bitswapStat *BitswapStat, textView 
 
 	// var str []string
 	for i := 0; i < len(bitswapStat.Wantlist); i++ {
-		str := fmt.Sprintf("%v", bitswapStat.Wantlist[i])
-		text += str
+		text += fmt.Sprintf("%v ", bitswapStat.Wantlist[i])
 	}
 	fmt.Fprintf(textView, "%s\n", text)
 	// text += fmt.Sprintf("%s", text)
@@ -67,16 +64,20 @@ func main() {
 	app := tview.NewApplication()
 	textView := tview.NewTextView()
 	textView.SetBorder(true)
+	textView.SetChangedFunc(func() {
+		app.Draw()
+	})
+
 	go func() {
 		for {
 			RefreshMonitor(client, bitswapStat, textView)
 			time.Sleep(500 * time.Millisecond)
 		}
 	}()
+
 	if err := app.SetRoot(textView, true).SetFocus(textView).Run(); err != nil {
 		panic(err)
 	}
-
 	// for {
 	// 	RefreshMonitor(client, bitswapStat)
 	// 	time.Sleep(time.Millisecond * 1000)
