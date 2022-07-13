@@ -8,26 +8,20 @@ import (
 	"time"
 
 	"github.com/Sab94/ipfs-monitor/widget"
+	bitswap_stat "github.com/docbull/bitswap-monitor/bitswap-stat"
 	"github.com/docbull/bitswap-monitor/conn"
+	"github.com/rivo/tview"
 )
+
+type BitswapStat bitswap_stat.BitswapStat
 
 type BitswapStatBlock widget.Widget
 
-type BitswapStat struct {
-	BlocksReceived   uint64        `json:"BlocksReceived"`
-	BlocksSent       uint64        `json:"BlocksSent"`
-	DataReceived     uint64        `json:"DataReceived"`
-	DataSent         uint64        `json:"DataSent"`
-	DupBlksReceived  uint64        `json:"DupBlksReceived"`
-	DupDataReceived  uint64        `json:"DupDataReceived"`
-	MessagesReceived uint64        `json:"MessagesReceived"`
-	Peers            []interface{} `json:"Peers"`
-	ProvideBufLen    int           `json:"ProvideBufLen"`
-	Wantlist         []interface{} `json:"Wantlist"`
-}
-
 // RefreshMonitor re-rendering bitswap logs every 10ms.
-func RefreshMonitor(client *conn.HttpClient, bitswapStat *BitswapStat) {
+func RefreshMonitor(client *conn.HttpClient, bitswapStat *BitswapStat, textView *tview.TextView) {
+	text := ""
+	// fmt.Fprintf(textView, "%s", "ABSc")
+
 	var data = []byte{}
 
 	req, err := http.NewRequest("POST", client.URL+"bitswap/stat", nil)
@@ -44,44 +38,47 @@ func RefreshMonitor(client *conn.HttpClient, bitswapStat *BitswapStat) {
 		fmt.Println(err)
 	}
 
-	fmt.Println("Blocks Got:", bitswapStat.BlocksReceived)
-	fmt.Println("Blocks Sent:", bitswapStat.BlocksSent)
-	fmt.Println("Duplicated Block Received:", bitswapStat.DupBlksReceived)
+	// var str []string
+	for i := 0; i < len(bitswapStat.Wantlist); i++ {
+		str := fmt.Sprintf("%v", bitswapStat.Wantlist[i])
+		text += str
+	}
+	fmt.Fprintf(textView, "%s\n", text)
+	// text += fmt.Sprintf("%s", text)
+	// fmt.Println("Blocks Got:", bitswapStat.BlocksReceived)
+	// fmt.Println("Blocks Sent:", bitswapStat.BlocksSent)
+	// fmt.Println("Duplicated Block Received:", bitswapStat.DupBlksReceived)
 
-	fmt.Println("Data Received:", bitswapStat.DataReceived)
-	fmt.Println("Data Sent:", bitswapStat.DataSent)
-	fmt.Println("Duplicated Data Received:", bitswapStat.DupDataReceived)
+	// fmt.Println("Data Received:", bitswapStat.DataReceived)
+	// fmt.Println("Data Sent:", bitswapStat.DataSent)
+	// fmt.Println("Duplicated Data Received:", bitswapStat.DupDataReceived)
 
-	fmt.Println("Messages Received:", bitswapStat.MessagesReceived)
-	// fmt.Println("Peers:", bitswapStat.Peers)
-	fmt.Println("Provide Buffer Length:", bitswapStat.ProvideBufLen)
-	fmt.Println("Wantlist:", bitswapStat.Wantlist)
-	fmt.Println("----------------------------------------------")
+	// fmt.Println("Messages Received:", bitswapStat.MessagesReceived)
+	// // fmt.Println("Peers:", bitswapStat.Peers)
+	// fmt.Println("Provide Buffer Length:", bitswapStat.ProvideBufLen)
+	// fmt.Println("Wantlist:", bitswapStat.Wantlist)
+	// fmt.Println("----------------------------------------------")
 }
 
 func main() {
-	// fmt.Println("Bitswap Monitor ...")
-
-	// monitor, err := bootstrap.Bootstrap(context.Background())
-	// if err != nil {
-	// 	fmt.Println("\n %v\n", err)
-	// 	os.Exit(1)
-	// }
-
-	// // Start tview app
-	// if err := monitor.App.Run(); err != nil {
-	// 	fmt.Printf("\n %v\n", err)
-	// 	os.Exit(1)
-	// }
-
 	client := conn.NewHTTPClient()
-	// fmt.Println("client:", client)
-
-	// text := ""
 	var bitswapStat *BitswapStat
 
-	for {
-		RefreshMonitor(client, bitswapStat)
-		time.Sleep(time.Millisecond * 1000)
+	app := tview.NewApplication()
+	textView := tview.NewTextView()
+	textView.SetBorder(true)
+	go func() {
+		for {
+			RefreshMonitor(client, bitswapStat, textView)
+			time.Sleep(500 * time.Millisecond)
+		}
+	}()
+	if err := app.SetRoot(textView, true).SetFocus(textView).Run(); err != nil {
+		panic(err)
 	}
+
+	// for {
+	// 	RefreshMonitor(client, bitswapStat)
+	// 	time.Sleep(time.Millisecond * 1000)
+	// }
 }
