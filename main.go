@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Sab94/ipfs-monitor/widget"
 	bitswap_stat "github.com/docbull/bitswap-monitor/bitswap-stat"
 	"github.com/docbull/bitswap-monitor/conn"
 	"github.com/rivo/tview"
@@ -15,10 +14,8 @@ import (
 
 type BitswapStat bitswap_stat.BitswapStat
 
-type BitswapStatBlock widget.Widget
-
 // RefreshMonitor re-rendering bitswap logs every 10ms.
-func RefreshMonitor(client *conn.HttpClient, bitswapStat *BitswapStat, textView *tview.TextView) {
+func RefreshMonitor(client *conn.HttpClient, bitswapStat *BitswapStat, view *tview.TextView) {
 	text := ""
 	var data = []byte{}
 
@@ -36,25 +33,13 @@ func RefreshMonitor(client *conn.HttpClient, bitswapStat *BitswapStat, textView 
 		fmt.Println(err)
 	}
 
-	// var str []string
 	for i := 0; i < len(bitswapStat.Wantlist); i++ {
 		text += fmt.Sprintf("%v ", bitswapStat.Wantlist[i])
 	}
-	fmt.Fprintf(textView, "%s\n", text)
-	// text += fmt.Sprintf("%s", text)
-	// fmt.Println("Blocks Got:", bitswapStat.BlocksReceived)
-	// fmt.Println("Blocks Sent:", bitswapStat.BlocksSent)
-	// fmt.Println("Duplicated Block Received:", bitswapStat.DupBlksReceived)
-
-	// fmt.Println("Data Received:", bitswapStat.DataReceived)
-	// fmt.Println("Data Sent:", bitswapStat.DataSent)
-	// fmt.Println("Duplicated Data Received:", bitswapStat.DupDataReceived)
-
-	// fmt.Println("Messages Received:", bitswapStat.MessagesReceived)
-	// // fmt.Println("Peers:", bitswapStat.Peers)
-	// fmt.Println("Provide Buffer Length:", bitswapStat.ProvideBufLen)
-	// fmt.Println("Wantlist:", bitswapStat.Wantlist)
-	// fmt.Println("----------------------------------------------")
+	// if len(bitswapStat.Wantlist) == 0 {
+	// 	text += fmt.Sprintf("%s", time.Now())
+	// }
+	fmt.Fprintf(view, "%s\n", text)
 }
 
 func main() {
@@ -62,24 +47,21 @@ func main() {
 	var bitswapStat *BitswapStat
 
 	app := tview.NewApplication()
-	textView := tview.NewTextView()
-	textView.SetBorder(true)
-	textView.SetChangedFunc(func() {
+	view := tview.NewTextView()
+	view.SetBorder(true)
+	view.SetChangedFunc(func() {
 		app.Draw()
 	})
+	view.SetScrollable(true)
 
 	go func() {
 		for {
-			RefreshMonitor(client, bitswapStat, textView)
+			RefreshMonitor(client, bitswapStat, view)
 			time.Sleep(500 * time.Millisecond)
 		}
 	}()
 
-	if err := app.SetRoot(textView, true).SetFocus(textView).Run(); err != nil {
+	if err := app.SetRoot(view, true).SetFocus(view).Run(); err != nil {
 		panic(err)
 	}
-	// for {
-	// 	RefreshMonitor(client, bitswapStat)
-	// 	time.Sleep(time.Millisecond * 1000)
-	// }
 }
