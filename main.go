@@ -37,19 +37,12 @@ func RefreshMonitor(client *conn.HttpClient, bitswapStat *BitswapStat, view *tvi
 
 	// fmt.Fprintf(view, "%s ", time.Now())
 	for i := 0; i < len(bitswapStat.Wantlist); i++ {
-		for _, v := range bitswapStat.Wantlist {
-			a := reflect.ValueOf(v)
-			for _, b := range a.MapKeys() {
-				c := a.MapIndex(b)
-				t := c.Interface()
-				text += fmt.Sprintf("%v ", t)
-			}
-			// val := reflect.ValueOf(v).Elem()
-			// n := val.FieldByName("/").Interface().(string)
-			// text += fmt.Sprintf("%v ", n)
-			// text += fmt.Sprintf("%v ", b)
+		a := reflect.ValueOf(bitswapStat.Wantlist[i])
+		for _, b := range a.MapKeys() {
+			c := a.MapIndex(b)
+			t := c.Interface()
+			text += fmt.Sprintf("%v ", t)
 		}
-		// text += fmt.Sprintf("%v ", bitswapStat.Wantlist[i])
 	}
 	if text != "" {
 		fmt.Fprintf(view, "%s\n\n", text)
@@ -87,7 +80,7 @@ func main() {
 			SetChangedFunc(func() { app.Draw() })
 	}
 	// menu := newPrimitive("Menu")
-	main := newPrimitive("Want List")
+	main := newPrimitive("Want List \n\n")
 	// sideBar := newPrimitive("Side Bar")
 
 	grid := tview.NewGrid().
