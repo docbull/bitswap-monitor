@@ -53,25 +53,6 @@ func main() {
 	client := conn.NewHTTPClient()
 	var bitswapStat *BitswapStat
 
-	// app := tview.NewApplication()
-	// view := tview.NewTextView()
-	// view.SetBorder(true)
-	// view.SetChangedFunc(func() {
-	// 	app.Draw()
-	// })
-	// view.SetScrollable(true)
-
-	// go func() {
-	// 	for {
-	// 		RefreshMonitor(client, bitswapStat, view)
-	// 		time.Sleep(500 * time.Millisecond)
-	// 	}
-	// }()
-
-	// if err := app.SetRoot(view, true).SetFocus(view).Run(); err != nil {
-	// 	panic(err)
-	// }
-
 	app := tview.NewApplication()
 	newPrimitive := func(text string) *tview.TextView {
 		return tview.NewTextView().
@@ -80,6 +61,7 @@ func main() {
 			SetChangedFunc(func() { app.Draw() })
 	}
 	// menu := newPrimitive("Menu")
+	info := newPrimitive("IPFS Bitswap Monitor \n\n")
 	main := newPrimitive("Want List \n\n")
 	// sideBar := newPrimitive("Side Bar")
 
@@ -87,7 +69,7 @@ func main() {
 		SetRows(3, 0, 3).
 		SetColumns(30, 0, 30).
 		SetBorders(true).
-		AddItem(newPrimitive("IPFS Bitswap Monitor"), 0, 0, 1, 3, 0, 0, false)
+		AddItem(info, 0, 0, 1, 3, 0, 0, false)
 
 	// Layout for screens narrower than 100 cells (menu and side bar are hidden).
 	grid.AddItem(main, 1, 0, 1, 3, 0, 0, false)
