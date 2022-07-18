@@ -60,10 +60,9 @@ func main() {
 			SetText(text).
 			SetChangedFunc(func() { app.Draw() })
 	}
-	// menu := newPrimitive("Menu")
+
 	info := newPrimitive("IPFS Bitswap Monitor \n\n")
 	main := newPrimitive("Want List \n\n")
-	// sideBar := newPrimitive("Side Bar")
 
 	grid := tview.NewGrid().
 		SetRows(3, 0, 3).
@@ -71,7 +70,6 @@ func main() {
 		SetBorders(true).
 		AddItem(info, 0, 0, 1, 3, 0, 0, false)
 
-	// Layout for screens narrower than 100 cells (menu and side bar are hidden).
 	grid.AddItem(main, 1, 0, 1, 3, 0, 0, false)
 
 	go func() {
@@ -80,11 +78,6 @@ func main() {
 			time.Sleep(500 * time.Millisecond)
 		}
 	}()
-
-	// Layout for screens wider than 100 cells.
-	// grid.AddItem(menu, 1, 0, 1, 1, 0, 100, false).
-	// 	AddItem(main, 1, 1, 1, 1, 0, 100, false).
-	// 	AddItem(sideBar, 1, 2, 1, 1, 0, 100, false)
 
 	if err := app.SetRoot(grid, true).SetFocus(grid).Run(); err != nil {
 		fmt.Printf("\n %v\n", err)
