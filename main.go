@@ -1,12 +1,8 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"net/http"
 	"os"
-	"reflect"
 	"time"
 
 	bitswap_stat "github.com/docbull/bitswap-monitor/bitswap-stat"
@@ -15,66 +11,13 @@ import (
 	"github.com/rivo/tview"
 )
 
-type BitswapStat bitswap_stat.BitswapStat
-type PeerInfo peerinfo.PeerInfo
-
-// RefreshMonitor re-rendering bitswap logs every 10ms.
-func RefreshMonitor(client *conn.HttpClient, bitswapStat *BitswapStat, view *tview.TextView) {
-	text := ""
-	var data = []byte{}
-
-	req, err := http.NewRequest("POST", client.URL+"bitswap/stat", nil)
-	if err != nil {
-		panic(err)
-	}
-	resp, err := client.Client.Do(req)
-	if err != nil {
-		fmt.Println(err)
-	}
-	data, _ = ioutil.ReadAll(resp.Body)
-	err = json.Unmarshal(data, &bitswapStat)
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	for i := 0; i < len(bitswapStat.Wantlist); i++ {
-		a := reflect.ValueOf(bitswapStat.Wantlist[i])
-		for _, b := range a.MapKeys() {
-			c := a.MapIndex(b)
-			t := c.Interface()
-			text += fmt.Sprintf("%v ", t)
-		}
-	}
-	if text != "" {
-		fmt.Fprintf(view, "%s\n\n", text)
-	}
-}
-
-func ShowPeerInfo(client *conn.HttpClient, peerInfo *PeerInfo, view *tview.TextView) {
-	text := ""
-	var data = []byte{}
-	req, err := http.NewRequest("POST", client.URL+"id", nil)
-	if err != nil {
-		panic(err)
-	}
-	resp, err := client.Client.Do(req)
-	if err != nil {
-		fmt.Println(err)
-	}
-	data, _ = ioutil.ReadAll(resp.Body)
-	err = json.Unmarshal(data, &peerInfo)
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	text += fmt.Sprintf("ID: %v", peerInfo.ID)
-	fmt.Fprintf(view, "%s", text)
-}
+type BitswapStat *bitswap_stat.BitswapStat
+type PeerInfo *peerinfo.PeerInfo
 
 func main() {
 	client := conn.NewHTTPClient()
-	var bitswapStat *BitswapStat
-	var peerInfo *PeerInfo
+	var bitswapStat BitswapStat
+	var peerInfo PeerInfo
 
 	app := tview.NewApplication()
 	newPrimitive := func(text string) *tview.TextView {
@@ -85,7 +28,7 @@ func main() {
 	}
 
 	info := newPrimitive("IPFS Bitswap Monitor \n\n")
-	ShowPeerInfo(client, peerInfo, info)
+	peerinfo.ShowPeerInfo(client, peerInfo, info)
 	main := newPrimitive("Want List \n\n")
 
 	grid := tview.NewGrid().
@@ -98,7 +41,7 @@ func main() {
 
 	go func() {
 		for {
-			RefreshMonitor(client, bitswapStat, main)
+			bitswap_stat.RefreshMonitor(client, bitswapStat, main)
 			time.Sleep(500 * time.Millisecond)
 		}
 	}()
