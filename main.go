@@ -42,7 +42,7 @@ func main() {
 	go func() {
 		for {
 			bitswap_stat.RefreshMonitor(client, bitswapStat, main)
-			time.Sleep(500 * time.Millisecond)
+			time.Sleep(100 * time.Millisecond)
 		}
 	}()
 
